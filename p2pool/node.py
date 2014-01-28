@@ -135,10 +135,10 @@ class P2PNode(p2p.Node):
                 self.handle_shares([(share, []) for share in shares], peer)
         
         
-        @self.node.best_block_header.changed.watch
-        def _(header):
-            for peer in self.peers.itervalues():
-                peer.send_bestblock(header=header)
+        #@self.node.best_block_header.changed.watch
+        #def _(header):
+            #for peer in self.peers.itervalues():
+                #peer.send_bestblock(header=header)
         
         # send share when the chain changes to their chain
         self.node.best_share_var.changed.watch(self.broadcast_share)

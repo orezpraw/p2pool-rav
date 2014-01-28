@@ -100,7 +100,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
                     transactions=[],
                     transaction_fees=[],
                     merkle_link=bitcoin_data.calculate_merkle_link([None], 0),
-                    subsidy=self.node.bitcoind_work.value['subsidy'],
+                    subsidy=self.node.net.PARENT.SUBSIDY_FUNC(self.node.bitcoind_work.value['height']),
                     last_update=self.node.bitcoind_work.value['last_update'],
                 )
             

@@ -288,7 +288,6 @@ class WorkerBridge(worker_interface.WorkerBridge):
                 desired_other_transaction_hashes_and_fees=zip(tx_hashes, self.current_work.value['transaction_fees']),
                 net=self.node.net,
                 known_txs=tx_map,
-                base_subsidy=self.node.bitcoind_work.value['subsidy'],
             )
         
         packed_gentx = bitcoin_data.tx_type.pack(gentx)

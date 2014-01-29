@@ -86,7 +86,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
         self.current_work = variable.Variable(None)
         def compute_work():
             t = self.node.bitcoind_work.value
-            bb = self.node.best_block_header.value
+            bb = self.node.best_block.value['header']
             if bb is not None and bb['previous_block'] == t['previous_block'] and self.node.net.PARENT.POW_FUNC(bitcoin_data.block_header_type.pack(bb)) <= t['bits'].target:
                 print 'Block %x has gone stale. Waiting for block %x!' % (bb['previous_block'],
                     bitcoin_data.hash256(bitcoin_data.block_header_type.pack(bb)))
@@ -108,7 +108,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
             
             self.current_work.set(t)
         self.node.bitcoind_work.changed.watch(lambda _: compute_work())
-        self.node.best_block_header.changed.watch(lambda _: compute_work())
+        self.node.best_block.changed.watch(lambda _: compute_work())
         compute_work()
         
         self.new_work_event = variable.Event()

@@ -36,6 +36,8 @@ class Protocol(p2protocol.Protocol):
         
         self.other_version = None
         self.connected2 = False
+        
+        self.headerOnly = None
     
     def connectionMade(self):
         self.factory.proto_made_connection(self)
@@ -338,12 +340,16 @@ class Protocol(p2protocol.Protocol):
             res = failure.Failure(self.ShareReplyError(result))
         self.get_shares.got_response(id, res)
     
+    block_or_just_header_type = pack.ComposedTypeWithDefaults([
+        ('header', bitcoin_data.block_header_type, pack.NO_DEFAULT),
+        ('txs', pack.ListType(bitcoin_data.tx_type), None),
+    ])
     
     message_bestblock = pack.ComposedType([
-        ('header', bitcoin_data.block_header_type),
+        ('block', block_or_just_header_type),
     ])
-    def handle_bestblock(self, header):
-        self.node.handle_bestblock(header, self)
+    def handle_bestblock(self, block):
+        self.node.handle_bestblock(block, self)
     
     
     message_have_tx = pack.ComposedType([

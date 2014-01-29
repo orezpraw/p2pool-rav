@@ -79,10 +79,15 @@ class P2PNode(p2p.Node):
             print 'Sending %i shares to %s:%i' % (len(shares), peer.addr[0], peer.addr[1])
         return shares
     
-    def handle_bestblock(self, header, peer):
+    def handle_bestblock(self, block, peer):
+        header = block['header']
+        if block['txs'] is None:
+            peer.headerOnly = True
+        else:
+            helper.submit_block(new_block, True, self.factory, self.bitcoind, self.bitcoind_work, self.net)
         if self.node.net.PARENT.POW_FUNC(bitcoin_data.block_header_type.pack(header)) > header['bits'].target:
             raise p2p.PeerMisbehavingError('received block header fails PoW test')
-        self.node.handle_header(header)
+        self.node.handle_block(block)
     
     def broadcast_share(self, share_hash):
         shares = []
@@ -135,10 +140,11 @@ class P2PNode(p2p.Node):
                 self.handle_shares([(share, []) for share in shares], peer)
         
         
-        #@self.node.best_block_header.changed.watch
-        #def _(header):
-            #for peer in self.peers.itervalues():
-                #peer.send_bestblock(header=header)
+        @self.node.best_block.changed.watch
+        def _(block):
+            for peer in self.peers.itervalues():
+                if not peer.headerOnly:
+                    peer.send_bestblock(block=block)
         
         # send share when the chain changes to their chain
         self.node.best_share_var.changed.watch(self.broadcast_share)
@@ -181,43 +187,49 @@ class Node(object):
         # BITCOIND WORK
         
         self.bitcoind_work = variable.Variable((yield helper.getwork(self.bitcoind)))
+        self.best_block = variable.Variable(None)
+        
         @defer.inlineCallbacks
         def work_poller():
             while stop_signal.times == 0:
                 flag = self.factory.new_block.get_deferred()
+                flag2 = self.best_block.changed.get_deferred()
                 try:
                     self.bitcoind_work.set((yield helper.getwork(self.bitcoind, self.bitcoind_work.value['use_getblocktemplate'])))
                 except:
                     log.err()
-                yield defer.DeferredList([flag, deferral.sleep(15)], fireOnOneCallback=True)
+                yield defer.DeferredList([flag, deferral.sleep(15), flag2], fireOnOneCallback=True)
         work_poller()
         
         # PEER WORK
         
-        self.best_block_header = variable.Variable(None)
-        def handle_header(new_header):
+        def handle_block(new_block):
             # check that header matches current target
+            new_header = new_block['header'];
             if not (self.net.PARENT.POW_FUNC(bitcoin_data.block_header_type.pack(new_header)) <= self.bitcoind_work.value['bits'].target):
                 return
+            if new_block['txs'] is None:
+                print "Received header only from peer, %x has gone stale." % new_header['previous_block']
+                return
             bitcoind_best_block = self.bitcoind_work.value['previous_block']
-            if (self.best_block_header.value is None
+            if (self.best_block.value is None
                 or (
                     new_header['previous_block'] == bitcoind_best_block and
-                    bitcoin_data.hash256(bitcoin_data.block_header_type.pack(self.best_block_header.value)) == bitcoind_best_block
+                    bitcoin_data.hash256(bitcoin_data.block_header_type.pack(self.best_block.value['header'])) == bitcoind_best_block
                 ) # new is child of current and previous is current
                 or (
                     bitcoin_data.hash256(bitcoin_data.block_header_type.pack(new_header)) == bitcoind_best_block and
-                    self.best_block_header.value['previous_block'] != bitcoind_best_block
+                    self.best_block.value['header']['previous_block'] != bitcoind_best_block
                 )): # new is current and previous is not a child of current
-                self.best_block_header.set(new_header)
-        self.handle_header = handle_header
+                self.best_block.set(new_block)
+        self.handle_block = handle_block
         @defer.inlineCallbacks
-        def poll_header():
+        def poll_block():
             if self.factory.conn.value is None:
                 return
-            handle_header((yield self.factory.conn.value.get_block_header(self.bitcoind_work.value['previous_block'])))
-        self.bitcoind_work.changed.watch(lambda _: poll_header())
-        yield deferral.retry('Error while requesting best block header:')(poll_header)()
+            handle_block((yield self.factory.conn.value.get_block(self.bitcoind_work.value['previous_block'])))
+        self.bitcoind_work.changed.watch(lambda _: poll_block())
+        yield deferral.retry('Error while requesting best block:')(poll_block)()
         
         # BEST SHARE
         

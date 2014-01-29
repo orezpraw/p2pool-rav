@@ -300,6 +300,31 @@ class ComposedType(Type):
         for key, type_ in self.fields:
             file = type_.write(file, item[key])
         return file
+      
+NO_DEFAULT = object()
+
+class ComposedTypeWithDefaults(Type):
+    def __init__(self, fields):
+        self.fields = list(fields)
+        self.field_names = set(k for k, v, d in fields)
+        self.record_type = get_record(k for k, v, d in self.fields)
+    
+    def read(self, file):
+        item = self.record_type()
+        for key, type_, default in self.fields:
+            try:
+              item[key], file = type_.read(file)
+            except EarlyEnd:
+              if default == NO_DEFAULT:
+                  raise
+              item[key] = default
+        return item, file
+    
+    def write(self, file, item):
+        assert set(item.keys()) == self.field_names, (set(item.keys()) - self.field_names, self.field_names - set(item.keys()))
+        for key, type_, default in self.fields:
+            file = type_.write(file, item[key])
+        return file
 
 class PossiblyNoneType(Type):
     def __init__(self, none_value, inner):

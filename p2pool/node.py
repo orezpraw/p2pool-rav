@@ -84,7 +84,7 @@ class P2PNode(p2p.Node):
         if block['txs'] is None:
             peer.headerOnly = True
         else:
-            helper.submit_block(block, True, self.factory, self.bitcoind, self.bitcoind_work, self.net)
+            helper.submit_block(block, True, self.node.factory, self.bitcoind, self.bitcoind_work, self.net)
         if self.node.net.PARENT.POW_FUNC(bitcoin_data.block_header_type.pack(header)) > header['bits'].target:
             raise p2p.PeerMisbehavingError('received block header fails PoW test')
         self.node.handle_block(block)

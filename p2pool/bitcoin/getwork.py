@@ -5,7 +5,7 @@ Representation of a getwork request/reply
 from __future__ import division
 
 from . import data as bitcoin_data
-from . import sha256
+from ltc_scrypt import cSha256 as sha256
 from p2pool.util import pack
 
 def _swap4(s):

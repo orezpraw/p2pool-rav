@@ -4,7 +4,8 @@ import unittest
 import hashlib
 import random
 
-from p2pool.bitcoin import sha256
+#from p2pool.bitcoin import sha256
+import ltc_scrypt as sha256
 
 class Test(unittest.TestCase):
     def test_all(self):
@@ -13,7 +14,9 @@ class Test(unittest.TestCase):
             #print sha256.sha256(test).hexdigest()
             #print hashlib.sha256(test).hexdigest()
             #print
-            assert sha256.sha256(test).hexdigest() == hashlib.sha256(test).hexdigest()
+            a = sha256.sha256(test)
+            b = a.hexdigest()
+            assert b == hashlib.sha256(test).hexdigest(), "Hash mismatch: %s -> %s %s" % (test, b, hashlib.sha256(test).hexdigest())
         def random_str(l):
             return ''.join(chr(random.randrange(256)) for i in xrange(l))
         for length in xrange(150):
@@ -35,3 +38,6 @@ class Test(unittest.TestCase):
             b.update(test2)
             b = b.hexdigest()
             assert a == b
+
+if __name__ == '__main__':
+    unittest.main()

@@ -6,6 +6,8 @@ from twisted.internet import defer
 from . import data
 from p2pool.util import math, pack
 
+import ltc_scrypt
+
 nets = dict(
     bitcoin=math.Object(
         P2P_PREFIX='f9beb4d9'.decode('hex'),
@@ -356,7 +358,7 @@ nets = dict(
             'dogecoinaddress' in (yield bitcoind.rpc_help()) and
             not (yield bitcoind.rpc_getinfo())['testnet']
         )),
-        POW_FUNC=lambda data: pack.IntType(256).unpack(__import__('ltc_scrypt').getPoWHash(data)),
+        POW_FUNC=lambda data: pack.IntType(256).unpack(ltc_scrypt.getPoWHash(data)),
         BLOCK_PERIOD=60, # s
         SYMBOL='DOGE',
         CONF_FILE_FUNC=lambda: os.path.join(os.path.join(os.environ['APPDATA'], 'DogeCoin') if platform.system() == 'Windows' else os.path.expanduser('~/Library/Application Support/Dogecoin/') if platform.system() == 'Darwin' else os.path.expanduser('~/.dogecoin'), 'dogecoin.conf'),

@@ -2,6 +2,9 @@ from __future__ import division
 
 import struct
 
+from ltc_scrypt import cSha256
+
+import pdb
 
 k = [
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -44,9 +47,18 @@ class sha256(object):
     
     def __init__(self, data='', _=(initial_state, '', 0)):
         self.state, self.buf, self.length = _
+        self.c = cSha256("", _)
         self.update(data)
     
     def update(self, data):
+        assert self is not None
+        assert self.c is not None
+        assert data is not None
+        try:
+          self.c.update(data)
+        except Exception as e:
+          pdb.set_trace()
+
         state = self.state
         buf = self.buf + data
         
@@ -68,6 +80,10 @@ class sha256(object):
         
         for chunk in [buf[i:i + self.block_size] for i in xrange(0, len(buf), self.block_size)]:
             state = process(state, chunk)
+            
+        c = self.c.digest()
+        if (state != c):
+            raise ValueError, "WARGH: %s != %s" % (state.encode('hex'), c.encode('hex'))
         
         return state
     

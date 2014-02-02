@@ -193,7 +193,9 @@ static void cSha256_digest_internal(CSha256 * self, PyObject *args, unsigned cha
 static PyObject* cSha256_digest(CSha256 * self, PyObject *args) {
   PyObject *digestObj = NULL;
   unsigned char digest[256/8];
+  
   cSha256_digest_internal(self, args, digest);
+  
   digestObj = PyString_FromStringAndSize((char *) digest, 256/8); // Implicit memcpy
   if (digestObj == NULL) abort();
   return digestObj;
@@ -210,8 +212,11 @@ static PyObject* cSha256_hexdigest(CSha256 * self, PyObject *args) {
   PyObject *digestObj = NULL;
   unsigned char digest[256/8];
   char hex[(256/4)+1];
+  
   cSha256_digest_internal(self, args, digest);
+  
   bin2hex(digest, hex, 256/8);
+  
   digestObj = PyString_FromStringAndSize(hex, 256/4); // Implicit memcpy
   if (digestObj == NULL) abort();
   return digestObj;
@@ -219,18 +224,22 @@ static PyObject* cSha256_hexdigest(CSha256 * self, PyObject *args) {
 
 static CSha256 * cSha256_copy(CSha256 * self, PyObject *args) {
   CSha256 * copy = (CSha256 *) self->ob_type->tp_new(self->ob_type, emptyTuple, emptyTuple);
+  
   copy->state = NULL;
   copy->buffer = NULL;
+  
   if (self->state != NULL) {
     copy->state = PyByteArray_FromStringAndSize(PyByteArray_AsString(self->state), PyByteArray_Size(self->state)); // Implicit memcpy
     if (copy->state == NULL) abort();
     Py_INCREF(copy->state);
   }
+  
   if (self->buffer != NULL) {
     copy->buffer = PyByteArray_FromStringAndSize(PyByteArray_AsString(self->buffer), PyByteArray_Size(self->buffer)); // Implicit memcpy
     if (copy->buffer == NULL) abort();
     Py_INCREF(copy->buffer);
   }
+  
   if (copy == NULL) abort();
   return copy;
 }
@@ -239,7 +248,7 @@ static PyObject * cSha256_getattro(CSha256 * self, PyObject * attr_name) {
   char * name = PyString_AsString(attr_name);
   SHA256_CTX * ctxp = (SHA256_CTX *) PyByteArray_AsString(self->state);
   PyObject * r = NULL;
-  uint32_t h[8];  // Temp storage SHA2 internal state
+  uint32_t h[8];  // Temp storage for SHA2 internal state
   if (strcmp(name, "state") == 0) {
     memcpy(h, &(ctxp->h), 256/8);
     size_t i;

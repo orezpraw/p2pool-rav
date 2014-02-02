@@ -9,8 +9,9 @@ import time
 from twisted.python import log
 
 import p2pool
-from p2pool.bitcoin import data as bitcoin_data, script, sha256
+from p2pool.bitcoin import data as bitcoin_data, script
 from p2pool.util import math, forest, pack
+import ltc_scrypt as sha256
 
 # hashlink
 

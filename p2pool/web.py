@@ -14,36 +14,7 @@ from twisted.web import resource, static
 import p2pool
 from bitcoin import data as bitcoin_data
 from . import data as p2pool_data, p2p
-from util import deferral, deferred_resource, graph, math, memory, pack, variable
-
-def _atomic_read(filename):
-    try:
-        with open(filename, 'rb') as f:
-            return f.read()
-    except IOError, e:
-        if e.errno != errno.ENOENT:
-            raise
-    try:
-        with open(filename + '.new', 'rb') as f:
-            return f.read()
-    except IOError, e:
-        if e.errno != errno.ENOENT:
-            raise
-    return None
-
-def _atomic_write(filename, data):
-    with open(filename + '.new', 'wb') as f:
-        f.write(data)
-        f.flush()
-        try:
-            os.fsync(f.fileno())
-        except:
-            pass
-    try:
-        os.rename(filename + '.new', filename)
-    except: # XXX windows can't overwrite
-        os.remove(filename)
-        os.rename(filename + '.new', filename)
+from util import deferral, deferred_resource, math, memory, pack, variable
 
 def get_web_root(wb, datadir_path, bitcoind_getinfo_var, stop_event=variable.Event()):
     node = wb.node

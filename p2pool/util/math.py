@@ -4,6 +4,7 @@ import __builtin__
 import math
 import random
 import time
+import traceback
 
 def median(x, use_float=True):
     # there exist better algorithms...
@@ -62,6 +63,7 @@ def geometric(p):
 
 def add_dicts_ext(add_func=lambda a, b: a+b, zero=0):
     def add_dicts(*dicts):
+        print traceback.extract_stack(None, 2)[0][2]
         res = {}
         for d in dicts:
             for k, v in d.iteritems():

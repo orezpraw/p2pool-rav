@@ -16,8 +16,6 @@ def _shift(x, shift, pad_item):
     right_pad = math2.clip(-shift, (0, len(x)))
     return [pad_item]*left_pad + x[right_pad:-left_pad if left_pad else None] + [pad_item]*right_pad
 
-combine_bins = math2.add_dicts_ext(lambda (a1, b1), (a2, b2): (a1+a2, b1+b2), (0, 0))
-
 nothing = object()
 def keep_largest(n, squash_key=nothing, key=lambda x: x, add_func=lambda a, b: a+b):
     def _(d):

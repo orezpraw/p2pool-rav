@@ -302,7 +302,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
             local_hash_rate = self._estimate_local_hash_rate()
             if local_hash_rate is not None:
                 target = min(target,
-                    bitcoin_data.average_attempts_to_target(local_hash_rate * 1)) # limit to 1 share response every second by modulating pseudoshare difficulty
+                    bitcoin_data.average_attempts_to_target(local_hash_rate * 10)) # limit to 1 share response every ten seconds by modulating pseudoshare difficulty
         else:
             target = desired_pseudoshare_target
         target = max(target, share_info['bits'].target)
@@ -419,7 +419,7 @@ class WorkerBridge(worker_interface.WorkerBridge):
                 print >>sys.stderr, 'Worker %s submitted share more than once!' % (user,)
             else:
                 received_header_hashes.add(header_hash)
-                
+                print 'Worker %s submitted pseudoshare %0.6f ontime: %s' % (user, bitcoin_data.target_to_difficulty(pow_hash), str(ontime))
                 self.pseudoshare_received.happened(bitcoin_data.target_to_average_attempts(target), not on_time, user)
                 self.recent_shares_ts_work.append((time.time(), bitcoin_data.target_to_average_attempts(target)))
                 while len(self.recent_shares_ts_work) > 50:

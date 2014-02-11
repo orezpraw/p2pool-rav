@@ -45,7 +45,7 @@ class BlockAttempt(object):
         ))
         
         midhash = sha256(block_data[:64])
-        assert midhash.buf == None or (midhash.buf == 0), "%i %i" % (midhash.length, len(midhash.buf))
+        assert midhash.buf == None or (len(midhash.buf) == 0), "%i %i" % (midhash.length, len(midhash.buf))
         
         # hash1 and midstate are deprecated
         # only cgminer/sgminer uses midstate but it doesn't require it AFAIK

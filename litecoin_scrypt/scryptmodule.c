@@ -257,7 +257,11 @@ static PyObject * cSha256_getattro(CSha256 * self, PyObject * attr_name) {
     }
     r = PyString_FromStringAndSize((char *) h, 256/8); // Implicit memcpy
   } else if (strcmp(name, "buf") == 0) {
-    r = PyString_FromStringAndSize(PyByteArray_AsString(self->buffer), PyByteArray_Size(self->buffer)); // Implicit memcpy
+    if (self->buffer != NULL) {
+        r = PyString_FromStringAndSize(PyByteArray_AsString(self->buffer), PyByteArray_Size(self->buffer)); // Implicit memcpy
+    } else {
+        return Py_None;
+    }
   } else if (strcmp(name, "length") == 0) {
     uint64_t extraLength = 0;
     if (self->buffer != NULL)

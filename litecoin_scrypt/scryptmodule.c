@@ -71,7 +71,7 @@ static void cSha256_internal_update(CSha256 * self, PyObject * dataObj) {
   SHA256_CTX * ctxp;
   ctxp = (SHA256_CTX *) PyByteArray_AsString(self->state);
   
-  if (totalLength > 64) {  // We have enough to move the SHA2 state forward
+  if (totalLength >= 64) {  // We have enough to move the SHA2 state forward
       if (extraLength > 0) {
         
         SHA256_Update(ctxp, extra, extraLength);
